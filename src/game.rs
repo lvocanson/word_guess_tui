@@ -1,12 +1,12 @@
-// The game itself: the rules of Wordle over a single hidden word. `Game` holds strictly the data
-// of a game in progress — the hidden target, the guesses committed so far, and the word currently
-// being typed (the draft) — and nothing about how it is drawn (ui.rs) or the chrome around it
-// (app.rs). Which strings count as words is the word database's job (words.rs).
+// The game itself: the rules of Word Guess over a single hidden word. `Game` holds strictly the
+// data of a game in progress — the hidden target, the guesses committed so far, and the word
+// currently being typed (the draft) — and nothing about how it is drawn (ui.rs) or the chrome
+// around it (app.rs). Which strings count as words is the word database's job (words.rs).
 
 use crate::words::{self, WORD_LEN};
 
 // Re-exported so callers keep importing it from the rules module; the value itself is generated
-// into constants.rs from the WORDLE_MAX_GUESSES build-time env var (default 6). See words.rs.
+// into constants.rs from the WGT_MAX_GUESSES build-time env var (default 6). See words.rs.
 pub use crate::words::MAX_GUESSES;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

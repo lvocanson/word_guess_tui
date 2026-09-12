@@ -109,7 +109,7 @@ pub enum WordKind {
     Valid,
 }
 
-pub struct WordleWord {
+pub struct Word {
     pub word: LowercaseAsciiWord,
     pub kind: WordKind,
 }
@@ -133,7 +133,7 @@ where
     A: Iterator<Item = LowercaseAsciiWord>,
     V: Iterator<Item = LowercaseAsciiWord>,
 {
-    type Item = WordleWord;
+    type Item = Word;
 
     fn next(&mut self) -> Option<Self::Item> {
         match (self.next_answer.take(), self.next_valid.take()) {
@@ -141,7 +141,7 @@ where
 
             (Some(ans), None) => {
                 self.next_answer = self.answers.next();
-                Some(WordleWord {
+                Some(Word {
                     word: ans,
                     kind: WordKind::Answer,
                 })
@@ -149,7 +149,7 @@ where
 
             (None, Some(val)) => {
                 self.next_valid = self.valids.next();
-                Some(WordleWord {
+                Some(Word {
                     word: val,
                     kind: WordKind::Valid,
                 })
@@ -159,7 +159,7 @@ where
                 Ordering::Less => {
                     self.next_answer = self.answers.next();
                     self.next_valid = Some(val);
-                    Some(WordleWord {
+                    Some(Word {
                         word: ans,
                         kind: WordKind::Answer,
                     })
@@ -167,7 +167,7 @@ where
                 Ordering::Equal => {
                     self.next_answer = self.answers.next();
                     self.next_valid = self.valids.next();
-                    Some(WordleWord {
+                    Some(Word {
                         word: ans,
                         kind: WordKind::Answer,
                     })
@@ -175,7 +175,7 @@ where
                 Ordering::Greater => {
                     self.next_answer = Some(ans);
                     self.next_valid = self.valids.next();
-                    Some(WordleWord {
+                    Some(Word {
                         word: val,
                         kind: WordKind::Valid,
                     })

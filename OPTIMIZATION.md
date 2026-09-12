@@ -28,7 +28,7 @@ The embedded corpus accounts for 14,283 B — 50% of the 28,672 B Windows binary
 ## How sizes are measured
 
 Build with a profile from [BUILD.md](BUILD.md), then measure with `tools/stats.rs`.
-Totals are only comparable at equal rustc — a toolchain bump alone can move the Windows total by tens of bytes — so the measurement toolchain is **pinned** (in `wtui-ship.sh`); bump it deliberately and re-measure the reference totals when you do.
+Totals are only comparable at equal rustc — a toolchain bump alone can move the Windows total by tens of bytes — so the measurement toolchain is **pinned** (in `wgt-ship.sh`); bump it deliberately and re-measure the reference totals when you do.
 The tool only *measures* — it never builds, so build first:
 
 ```bash
@@ -39,7 +39,7 @@ With no argument it measures the freshest of the release outputs BUILD.md docume
 Pass a path to pin the binary — necessary when several profiles coexist in `target/`:
 
 ```bash
-cargo run --example stats -- target/x86_64-pc-windows-msvc/release/wordle_tui.exe
+cargo run --example stats -- target/x86_64-pc-windows-msvc/release/word_guess_tui.exe
 ```
 
 It prints two reports: the **compression report** (word counts, packed size, B/word, and the model constants the build chose) and the **binary report** — the on-disk size plus every section's un-padded size and their total.
@@ -73,15 +73,15 @@ The `--config` patch build rewrites `Cargo.lock`; the script restores it on exit
 **Independent cross-checks on Linux:**
 
 ```bash
-size -A target/x86_64-unknown-linux-gnu/release/wordle_tui
+size -A target/x86_64-unknown-linux-gnu/release/word_guess_tui
 ```
 
 ```bash
-bloaty target/x86_64-unknown-linux-gnu/release/wordle_tui
+bloaty target/x86_64-unknown-linux-gnu/release/word_guess_tui
 ```
 
 **Symbol attribution: `tools/bloat.rs` over the linker map.**
-BUILD.md's ship commands make the link also emit its symbol map (`/MAP:target/wordle_tui.map` on MSVC, `-Wl,-Map=target/wordle_tui-linux.map` on lld) — **without changing a byte of the binary** (verified: only the 6 link-timestamp bytes differ).
+BUILD.md's ship commands make the link also emit its symbol map (`/MAP:target/word_guess_tui.map` on MSVC, `-Wl,-Map=target/word_guess_tui-linux.map` on lld) — **without changing a byte of the binary** (verified: only the 6 link-timestamp bytes differ).
 
 ```bash
 cargo run --example bloat
@@ -100,7 +100,7 @@ Confirm any lead by string-probing the binary and by a measured rebuild.
 On Linux `tools/pty_test.sh` drives it under a real PTY (`script -qec`, 80x30) and asserts on the bytes it renders: typing and submitting a word, an invalid word, backspace, Ctrl+C and Esc quitting, arrows and F-keys leaving the draft untouched, and clicks on the ENTER button and on a letter key in **both** mouse encodings.
 
 ```bash
-bash tools/pty_test.sh target/x86_64-unknown-linux-gnu/release/wordle_tui
+bash tools/pty_test.sh target/x86_64-unknown-linux-gnu/release/word_guess_tui
 ```
 
 Run it against a control binary built from the previous commit as well: the PTY line discipline mangles some input on its own (`ICRNL` eats CR, `ISIG` eats `0x03` before raw mode is on), so a bare failure list does not read as a regression on its own. A patch is a regression only when the two runs differ.
@@ -214,7 +214,7 @@ They no longer share its *storage*; see [#18](#18--asymmetric-decoder-fixed-arra
 
 ### 9 — `/DEBUG:NONE` (PE) / `--build-id=none` (ELF)
 
-`strip = true` removes symbols, but the MSVC linker still emits an `IMAGE_DEBUG_DIRECTORY` — a CodeView entry pointing at `wordle_tui.pdb` plus a REPRO entry, ~84 B — and leaks the `.pdb` path as a string in `.rdata`.
+`strip = true` removes symbols, but the MSVC linker still emits an `IMAGE_DEBUG_DIRECTORY` — a CodeView entry pointing at `word_guess_tui.pdb` plus a REPRO entry, ~84 B — and leaks the `.pdb` path as a string in `.rdata`.
 `-Clink-arg=/DEBUG:NONE` leaves only the 28 B REPRO stub.
 On ELF the equivalent is `-Wl,--build-id=none`, which drops `.note.gnu.build-id` (−112 B versus the linker default).
 Both live in `[target.*] rustflags` and apply to every profile.
@@ -353,7 +353,7 @@ Here it is moot — forward-ascending is smallest on both — but `best_model` w
 ### 21 — Conditioned colour bit
 
 The per-word colour bit (answer vs. valid-only) was coded by exact sampling without replacement: optimal *if the answer subset is structureless*, spending `log2 C(14853, 2339) ≈ 1166 B`.
-It is not structureless — Wordle answers avoid plurals, so a word's **last letter** predicts its colour (words ending in `-s`: 0.9% answers, versus 21.9% otherwise).
+It is not structureless — the answer list avoids plurals, so a word's **last letter** predicts its colour (words ending in `-s`: 0.9% answers, versus 21.9% otherwise).
 Replacing SWOR with a small adaptive binary model conditioned on one build-searched letter (`USE_COLOR`/`COLOR_POS`) captures that: colour cost 1166 → ~1000 B.
 The model is adaptive, so nothing is stored — its `[[u32; 2]; 26]` count table lives on the stack, not in the binary.
 

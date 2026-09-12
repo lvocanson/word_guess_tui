@@ -1,8 +1,8 @@
-# wordle_tui
+# Word Guess TUI
 
-[![CI](https://github.com/lvocanson/wordle_tui/actions/workflows/ci.yml/badge.svg)](https://github.com/lvocanson/wordle_tui/actions/workflows/ci.yml)
+[![CI](https://github.com/lvocanson/word_guess_tui/actions/workflows/ci.yml/badge.svg)](https://github.com/lvocanson/word_guess_tui/actions/workflows/ci.yml)
 
-Wordle in the terminal: full-screen board, on-screen keyboard, mouse or keyboard input, and a 14,853-word dictionary — in a **28 KB** binary built on one dependency (`crossterm`) with no runtime files.
+Word Guess in the terminal: full-screen board, on-screen keyboard, mouse or keyboard input, and a 14,853-word dictionary — in a **28 KB** binary built on one dependency (`crossterm`) with no runtime files.
 
 <p align="center">
   <img src="docs/demo.gif" width="400"
@@ -11,7 +11,7 @@ Wordle in the terminal: full-screen board, on-screen keyboard, mouse or keyboard
 
 ```bash
 cargo run --release      # no prerequisites, 136 KB
-./wtui-ship.sh run       # everything on, 28 KB — toolchain and flags handled for you
+./wgt-ship.sh run        # everything on, 28 KB — toolchain and flags handled for you
 ```
 
 Rust stable builds and runs with no prerequisites.
@@ -46,15 +46,15 @@ Both knobs are read by the build script and baked into generated constants; chan
 
 | Variable | Default | Effect |
 |----------|---------|--------|
-| `WORDLE_WORD_LEN` | `5` | Selects the `res/{answer,valid}_words_N.txt` pair — 3 to 7 are provided |
-| `WORDLE_MAX_GUESSES` | `6` | Number of guesses per game |
+| `WGT_WORD_LEN` | `5` | Selects the `res/{answer,valid}_words_N.txt` pair — 3 to 7 are provided |
+| `WGT_MAX_GUESSES` | `6` | Number of guesses per game |
 
 ```bash
-WORDLE_WORD_LEN=6 WORDLE_MAX_GUESSES=8 cargo build --release
+WGT_WORD_LEN=6 WGT_MAX_GUESSES=8 cargo build --release
 ```
 
 ```powershell
-$env:WORDLE_WORD_LEN = '6'; $env:WORDLE_MAX_GUESSES = '8'; cargo build --release
+$env:WGT_WORD_LEN = '6'; $env:WGT_MAX_GUESSES = '8'; cargo build --release
 ```
 
 ## Word data
@@ -79,7 +79,7 @@ See [OPTIMIZATION.md](OPTIMIZATION.md) for the encoding's design and its measure
 | `docs/` | the README's demo GIFs |
 | `tools/stats.rs` | compression and binary-size reporter (`cargo run --example stats`) |
 | `tools/validate.sh` | one-shot tests + Windows/Linux builds + size report |
-| `wtui-ship.sh` | one-command shipping build, prerequisites installed on demand |
+| `wgt-ship.sh` | one-command shipping build, prerequisites installed on demand |
 | `vendor/crossterm/` | patched crossterm 0.29.0 (see its `LOCAL_PATCH.md`) |
 
 ## Tests

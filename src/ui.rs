@@ -231,7 +231,7 @@ fn draw_cell(grid: &mut Grid, x: usize, y: usize, w: usize, h: usize, letter: u8
 // ----------------------------------------------------------------------------
 
 fn draw_title(grid: &mut Grid, x: usize, y: usize, w: usize) {
-    const TITLE: &[u8] = b"- Wordle -";
+    const TITLE: &[u8] = b"- Word Guess -";
     let off = w.saturating_sub(TITLE.len()) / 2; // center the title over the whole width
     grid.text(x + off, y, TITLE, COLOR_WHITE_TEXT);
 }

@@ -1,7 +1,7 @@
 //! Symbol-level size attribution from a linker map — this project's replacement for `cargo bloat`.
 //!
 //! Run with `cargo run --example bloat` after an immediate-abort build (BUILD.md's commands emit
-//! the map: `/MAP:target/wordle_tui.map` on MSVC, `-Wl,-Map=target/wordle_tui-linux.map` on lld).
+//! the map: `/MAP:target/word_guess_tui.map` on MSVC, `-Wl,-Map=target/word_guess_tui-linux.map` on lld).
 //! With no argument it reads the freshest of those two; pass a path to pin one, `-n N` for the
 //! list length.
 //!
@@ -15,7 +15,7 @@
 //! are listed together instead of misattributed. lld maps carry exact per-input-section sizes.
 //!
 //! Crates are read from the demangled symbol names (under fat LTO every Rust symbol lands in the
-//! one wordle_tui object, so object-based attribution — what `cargo bloat` shows — is useless).
+//! one word_guess_tui object, so object-based attribution — what `cargo bloat` shows — is useless).
 
 use std::path::Path;
 
@@ -46,7 +46,7 @@ fn main() {
     let Some(path) = path.or_else(default_map) else {
         eprintln!(
             "no linker map found — build one first (see BUILD.md), e.g. on MSVC add\n  \
-             -Clink-arg=/MAP:target/wordle_tui.map\nthen run `cargo run --example bloat`"
+             -Clink-arg=/MAP:target/word_guess_tui.map\nthen run `cargo run --example bloat`"
         );
         std::process::exit(1);
     };
@@ -102,7 +102,7 @@ fn main() {
 
 /// Freshest existing default map, mirroring how stats.rs picks the freshest binary.
 fn default_map() -> Option<String> {
-    ["target/wordle_tui.map", "target/wordle_tui-linux.map"]
+    ["target/word_guess_tui.map", "target/word_guess_tui-linux.map"]
         .into_iter()
         .filter(|p| Path::new(p).exists())
         .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())

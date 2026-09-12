@@ -62,10 +62,10 @@ run "X10-encoded click on the ENTER button" '\033[M\040\067\074\033'
 check "Incorrect size\." "the X10-encoded click submitted too"
 
 run "Ctrl+C quits" '\003'
-check "Wordle" "the game rendered, then exited on Ctrl+C"
+check "WGT" "the game rendered, then exited on Ctrl+C"
 
 run "Esc quits" '\033'
-check "Wordle" "the game rendered, then exited on Esc"
+check "WGT" "the game rendered, then exited on Esc"
 
 echo
 if [ "$FAILED" = 0 ]; then echo "all checks passed"; else echo "SOME CHECKS FAILED"; fi

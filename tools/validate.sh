@@ -14,7 +14,7 @@
 # summary at the end.
 #
 # Profile = ship (the shipping/measurement profile; see BUILD.md). Both builds go
-# through ./wtui-ship.sh, so the toolchain pin and the per-platform flags are defined once,
+# through ./wgt-ship.sh, so the toolchain pin and the per-platform flags are defined once,
 # there, and never duplicated here.
 
 set -uo pipefail
@@ -26,14 +26,14 @@ cd "$REPO"
 LOG="$(mktemp)"
 trap 'rm -f "$LOG"' EXIT
 
-# The measurement toolchain is pinned in wtui-ship.sh (totals are only comparable at equal rustc);
+# The measurement toolchain is pinned in wgt-ship.sh (totals are only comparable at equal rustc);
 # bump it there and re-measure the reference totals. Same for the ship flags, including
 # the /MAP and -Map args that make the link emit the symbol map tools/bloat.rs reads below
 # (byte-neutral, verified — see OPTIMIZATION.md "Symbol attribution"). Only the paths those maps
 # and binaries land in are spelled out here.
 WIN_TARGET='x86_64-pc-windows-msvc'
 LIN_TARGET='x86_64-unknown-linux-gnu'
-WIN_BIN="target/${WIN_TARGET}/release/wordle_tui.exe"
+WIN_BIN="target/${WIN_TARGET}/release/word_guess_tui.exe"
 
 DO_LINUX=1; DO_BLOAT=1
 for a in "$@"; do
@@ -64,7 +64,7 @@ fi
 
 # ---------------------------------------------------------------------------
 section "WINDOWS BUILD — ship"
-if try "windows build" bash wtui-ship.sh build; then
+if try "windows build" bash wgt-ship.sh build; then
   grep -iE 'warning|Finished' "$LOG" || true
   # Cargo may print "patch ... was not used in the crate graph" even when the vendored crossterm
   # IS linked (it fires whenever the patched version equals the registry one), so that warning is
@@ -81,7 +81,7 @@ if try "windows build" bash wtui-ship.sh build; then
   # Explicit path so we always measure the ship exe we just built; the sed drops the
   # stats example's own build noise and compression report.
   if try "windows size" cargo run --example stats -- "$WIN_BIN"; then
-    sed -n '/wordle_tui.exe/,$p' "$LOG"
+    sed -n '/word_guess_tui.exe/,$p' "$LOG"
   fi
 fi
 
@@ -95,21 +95,21 @@ if [ "$DO_LINUX" = 1 ]; then
     echo "!! could not resolve WSL path for '$WIN_PATH' — is WSL installed? (skip with --no-linux)"
     FAILED+=("linux (wsl path)")
   else
-    # Same structure as the Windows steps, run inside WSL: the same wtui-ship.sh build (it picks the
+    # Same structure as the Windows steps, run inside WSL: the same wgt-ship.sh build (it picks the
     # Linux triple and flags up from the host it now runs on), then the same stats.rs reporter.
     wsl.exe -e bash -lc "
       set -u
       cd '$WSL_PATH' || exit 1
-      export CARGO_TARGET_DIR=/tmp/wordle_target
-      BIN=/tmp/wordle_target/$LIN_TARGET/release/wordle_tui
+      export CARGO_TARGET_DIR=/tmp/wgt_target
+      BIN=/tmp/wgt_target/$LIN_TARGET/release/word_guess_tui
       LOG=\$(mktemp); trap 'rm -f \"\$LOG\"' EXIT
-      if bash wtui-ship.sh build >\"\$LOG\" 2>&1; then
+      if bash wgt-ship.sh build >\"\$LOG\" 2>&1; then
         grep -iE 'warning|Finished' \"\$LOG\" || true
       else
         tail -n 40 \"\$LOG\"; exit 1
       fi
       if cargo run --example stats -- \"\$BIN\" >\"\$LOG\" 2>&1; then
-        sed -n '/wordle_tui/,\$p' \"\$LOG\"
+        sed -n '/word_guess_tui/,\$p' \"\$LOG\"
       else
         tail -n 40 \"\$LOG\"; exit 1
       fi
@@ -123,13 +123,13 @@ if [ "$DO_BLOAT" = 1 ]; then
   # Post-LTO/ICF ground truth on the exact shipping binary — replaces cargo-bloat, whose two
   # failure modes (measuring upstream crossterm, misattributing ICF folds) are documented in
   # OPTIMIZATION.md "Symbol attribution".
-  section "SYMBOL BLOAT — Windows (tools/bloat.rs over target/wordle_tui.map)"
-  if try "bloat (windows)" cargo run --example bloat -- target/wordle_tui.map -n 25; then
+  section "SYMBOL BLOAT — Windows (tools/bloat.rs over target/word_guess_tui.map)"
+  if try "bloat (windows)" cargo run --example bloat -- target/word_guess_tui.map -n 25; then
     sed -n '/symbol bloat/,$p' "$LOG"
   fi
   if [ "$DO_LINUX" = 1 ]; then
-    section "SYMBOL BLOAT — Linux (tools/bloat.rs over target/wordle_tui-linux.map)"
-    if try "bloat (linux)" cargo run --example bloat -- target/wordle_tui-linux.map -n 25; then
+    section "SYMBOL BLOAT — Linux (tools/bloat.rs over target/word_guess_tui-linux.map)"
+    if try "bloat (linux)" cargo run --example bloat -- target/word_guess_tui-linux.map -n 25; then
       sed -n '/symbol bloat/,$p' "$LOG"
     fi
   fi

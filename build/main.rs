@@ -26,27 +26,27 @@ fn main() {
     let out = Path::new(&out_dir);
 
     // Guess count is a pure game rule — it does not touch the compressed corpus — so it is made
-    // configurable at build time without editing code: set WORDLE_MAX_GUESSES. Defaults to 6.
-    let max_guesses: usize = match env::var("WORDLE_MAX_GUESSES") {
+    // configurable at build time without editing code: set WGT_MAX_GUESSES. Defaults to 6.
+    let max_guesses: usize = match env::var("WGT_MAX_GUESSES") {
         Ok(s) => s
             .trim()
             .parse()
-            .unwrap_or_else(|_| panic!("WORDLE_MAX_GUESSES must be a positive integer, got {s:?}")),
+            .unwrap_or_else(|_| panic!("WGT_MAX_GUESSES must be a positive integer, got {s:?}")),
         Err(_) => 6,
     };
-    assert!(max_guesses >= 1, "WORDLE_MAX_GUESSES must be at least 1");
+    assert!(max_guesses >= 1, "WGT_MAX_GUESSES must be at least 1");
 
     // Word length selects which res/{answer,valid}_words_N.txt pair to compress: set
-    // WORDLE_WORD_LEN. Defaults to 5. The value only picks the source files here; the authoritative
+    // WGT_WORD_LEN. Defaults to 5. The value only picks the source files here; the authoritative
     // length is still inferred from the data below and cross-checked against this choice.
-    let selected_len: usize = match env::var("WORDLE_WORD_LEN") {
+    let selected_len: usize = match env::var("WGT_WORD_LEN") {
         Ok(s) => s
             .trim()
             .parse()
-            .unwrap_or_else(|_| panic!("WORDLE_WORD_LEN must be a positive integer, got {s:?}")),
+            .unwrap_or_else(|_| panic!("WGT_WORD_LEN must be a positive integer, got {s:?}")),
         Err(_) => 5,
     };
-    assert!(selected_len >= 1, "WORDLE_WORD_LEN must be at least 1");
+    assert!(selected_len >= 1, "WGT_WORD_LEN must be at least 1");
 
     // `--cfg immediate_abort` (set alongside -Cpanic=immediate-abort) gates the now-unreachable
     // panic hook out of main.rs; declare it here so the unexpected-cfg lint stays quiet.
@@ -59,8 +59,8 @@ fn main() {
     println!("cargo:rerun-if-changed=res/{valid_name}");
     println!("cargo:rerun-if-changed=src/codec.rs");
     println!("cargo:rerun-if-changed=build");
-    println!("cargo:rerun-if-env-changed=WORDLE_MAX_GUESSES");
-    println!("cargo:rerun-if-env-changed=WORDLE_WORD_LEN");
+    println!("cargo:rerun-if-env-changed=WGT_MAX_GUESSES");
+    println!("cargo:rerun-if-env-changed=WGT_WORD_LEN");
 
     let answers_txt = res.join(&answers_name);
     let valid_txt = res.join(&valid_name);
@@ -71,7 +71,7 @@ fn main() {
         .unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(
         word_len, selected_len,
-        "WORDLE_WORD_LEN={selected_len} but res/{answers_name} + res/{valid_name} hold \
+        "WGT_WORD_LEN={selected_len} but res/{answers_name} + res/{valid_name} hold \
          {word_len}-letter words",
     );
 

@@ -69,7 +69,7 @@ fn init_terminal() -> io::Result<Out> {
     // (a `Once` + env read on Windows) to choose ANSI-vs-WinAPI, pure overhead once we commit to
     // ANSI. No SetSize: the layout adapts to whatever size the terminal is (see ui::build_grid),
     // and forcing a resize corrupts the alternate screen's cursor restore. ?1049 keeps it clean.
-    out.write_all(b"\x1b[?1049h\x1b]0;Wordle\x07\x1b[?25l")?;
+    out.write_all(b"\x1b[?1049h\x1b]0;Word Guess\x07\x1b[?25l")?;
     // Mouse capture stays on crossterm: on Windows it must set ENABLE_MOUSE_INPUT via WinAPI
     // (the console event source reads mouse from the input buffer, not from ANSI reports), which
     // the ANSI `?1000h`… sequences would not do — and that same call is what puts the console in

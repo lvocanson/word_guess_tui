@@ -7,33 +7,33 @@ Two profiles, each with **one command per platform that produces the smallest bi
 
 ## One command for the `ship` profile
 
-`./wtui-ship.sh` runs the shipping build with the toolchain, target and flags that fit the machine it is on — the same command as below, with the prerequisites installed on demand:
+`./wgt-ship.sh` runs the shipping build with the toolchain, target and flags that fit the machine it is on — the same command as below, with the prerequisites installed on demand:
 
 ```bash
-./wtui-ship.sh                                    # build for the host
-./wtui-ship.sh run                                # build it and run the game
-./wtui-ship.sh --target x86_64-unknown-linux-musl
-./wtui-ship.sh -n                                 # print the cargo command, run nothing
+./wgt-ship.sh                                    # build for the host
+./wgt-ship.sh run                                # build it and run the game
+./wgt-ship.sh --target x86_64-unknown-linux-musl
+./wgt-ship.sh -n                                 # print the cargo command, run nothing
 ```
 
-It installs the pinned nightly **with `rust-src`** and adds a missing `--target`, and forwards anything it does not recognise to cargo. `./wtui-ship.sh --help` for the rest.
+It installs the pinned nightly **with `rust-src`** and adds a missing `--target`, and forwards anything it does not recognise to cargo. `./wgt-ship.sh --help` for the rest.
 
 The flags reach cargo through `--config target.<triple>.rustflags=[…]`, which **merges** with the `[target]` blocks of `.cargo/config.toml` — the reason the script never repeats `/OPT:ICF` & co. while the hand-typed `RUSTFLAGS` lines below have to.
 
-There is no script for the **stable** profile, and no flag to ask `wtui-ship.sh` for it: stable *is* a plain `cargo build --release`, which is the whole point of it.
+There is no script for the **stable** profile, and no flag to ask `wgt-ship.sh` for it: stable *is* a plain `cargo build --release`, which is the whole point of it.
 
 The rest of this file spells out both, platform by platform — the `ship` lines are what the script runs.
 
 ---
 
-The `ship` profile uses a **pinned** nightly (`nightly-2026-08-25`, declared in `wtui-ship.sh`, which `tools/validate.sh` and CI both build through): binary sizes are only comparable at equal rustc, so the measured numbers in OPTIMIZATION.md are tied to this toolchain.
+The `ship` profile uses a **pinned** nightly (`nightly-2026-08-25`, declared in `wgt-ship.sh`, which `tools/validate.sh` and CI both build through): binary sizes are only comparable at equal rustc, so the measured numbers in OPTIMIZATION.md are tied to this toolchain.
 Install it once:
 
 ```
 rustup toolchain install nightly-2026-08-25 --profile minimal --component rust-src
 ```
 
-To bump the pin, change `NIGHTLY` in `wtui-ship.sh` and the version quoted here, then re-measure the reference totals.
+To bump the pin, change `NIGHTLY` in `wgt-ship.sh` and the version quoted here, then re-measure the reference totals.
 
 ### Entry point
 
@@ -50,7 +50,7 @@ See `vendor/crossterm/LOCAL_PATCH.md` for more information.
 ## Windows (PowerShell, MSVC)
 
 The MSVC link optimizations (`/OPT:ICF`, `/DEBUG:NONE`) are already in `.cargo/config.toml`, so they apply to every profile automatically — no extra flags below.
-Output: stable → `target\release\wordle_tui.exe`; ship → `target\x86_64-pc-windows-msvc\release\wordle_tui.exe`.
+Output: stable → `target\release\word_guess_tui.exe`; ship → `target\x86_64-pc-windows-msvc\release\word_guess_tui.exe`.
 
 **Stable:**
 
@@ -61,7 +61,7 @@ cargo build --release
 **ship:**
 
 ```powershell
-$env:RUSTFLAGS = '-Zunstable-options -Cpanic=immediate-abort --cfg immediate_abort -Clink-arg=/OPT:ICF -Clink-arg=/DEBUG:NONE -Clink-arg=/MAP:target/wordle_tui.map'; cargo +nightly-2026-08-25 build --release --target x86_64-pc-windows-msvc; Remove-Item Env:RUSTFLAGS
+$env:RUSTFLAGS = '-Zunstable-options -Cpanic=immediate-abort --cfg immediate_abort -Clink-arg=/OPT:ICF -Clink-arg=/DEBUG:NONE -Clink-arg=/MAP:target/word_guess_tui.map'; cargo +nightly-2026-08-25 build --release --target x86_64-pc-windows-msvc; Remove-Item Env:RUSTFLAGS
 ```
 
 > `RUSTFLAGS` **overrides** the `[target]` block (it does not merge), so `/OPT:ICF` and `/DEBUG:NONE` are repeated in the ship line.
@@ -72,7 +72,7 @@ $env:RUSTFLAGS = '-Zunstable-options -Cpanic=immediate-abort --cfg immediate_abo
 ## Linux — glibc (bash)
 
 ICF has no default-linker equivalent, so it is passed on the command line: the **stable** profile uses the system `lld` (`-fuse-ld=lld`, needs the `lld` package); **ship** uses the toolchain's bundled `rust-lld` (`-Clinker-features=+lld`, no install).
-Output: stable → `target/release/wordle_tui`; ship → `target/x86_64-unknown-linux-gnu/release/wordle_tui`.
+Output: stable → `target/release/word_guess_tui`; ship → `target/x86_64-unknown-linux-gnu/release/word_guess_tui`.
 
 **Stable:**
 
@@ -84,7 +84,7 @@ RUSTFLAGS="-Clink-arg=-fuse-ld=lld -Clink-arg=-Wl,--icf=all -Clink-arg=-Wl,--bui
 **ship:**
 
 ```bash
-RUSTFLAGS="-Zunstable-options -Cpanic=immediate-abort --cfg immediate_abort -Clinker-features=+lld -Clink-arg=-Wl,--icf=all -Clink-arg=-Wl,--build-id=none -Clink-arg=-Wl,-Map=target/wordle_tui-linux.map" \
+RUSTFLAGS="-Zunstable-options -Cpanic=immediate-abort --cfg immediate_abort -Clinker-features=+lld -Clink-arg=-Wl,--icf=all -Clink-arg=-Wl,--build-id=none -Clink-arg=-Wl,-Map=target/word_guess_tui-linux.map" \
   cargo +nightly-2026-08-25 build --release --target x86_64-unknown-linux-gnu
 ```
 
@@ -104,7 +104,7 @@ rustup target add x86_64-unknown-linux-musl                     # stable profile
 rustup target add --toolchain nightly-2026-08-25 x86_64-unknown-linux-musl # ship
 ```
 
-Output: `target/x86_64-unknown-linux-musl/release/wordle_tui`.
+Output: `target/x86_64-unknown-linux-musl/release/word_guess_tui`.
 
 **Stable:**
 

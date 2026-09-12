@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# wtui-ship.sh — build the shipping binary: the smallest this project knows how to produce.
+# wgt-ship.sh — build the shipping binary: the smallest this project knows how to produce.
 #
-#   ./wtui-ship.sh                                    # build for the host
-#   ./wtui-ship.sh run                                # build it and run the game
-#   ./wtui-ship.sh --target x86_64-unknown-linux-musl
-#   ./wtui-ship.sh -n                                 # print the cargo command, run nothing
-#   ./wtui-ship.sh build -v --features …              # anything unrecognised goes to cargo
+#   ./wgt-ship.sh                                    # build for the host
+#   ./wgt-ship.sh run                                # build it and run the game
+#   ./wgt-ship.sh --target x86_64-unknown-linux-musl
+#   ./wgt-ship.sh -n                                 # print the cargo command, run nothing
+#   ./wgt-ship.sh build -v --features …              # anything unrecognised goes to cargo
 #
 # There is no profile option, on purpose. The other way to build this project is a plain
 # `cargo build --release` on whatever toolchain you already have — no nightly, no rust-src, no
@@ -28,7 +28,7 @@
 # subcommand (default `build`); everything else is forwarded to cargo untouched.
 #
 # Run from anywhere (it cd's to the repo root). Use Git Bash on Windows, like tools/validate.sh:
-#   bash wtui-ship.sh run
+#   bash wgt-ship.sh run
 
 set -uo pipefail
 
@@ -110,8 +110,8 @@ FLAGS=(-Cpanic=immediate-abort --cfg immediate_abort)
 # Byte-neutral: makes the link also emit its symbol map for `cargo run --example bloat`
 # (OPTIMIZATION.md "Symbol attribution"). Only for the two triples tools/validate.sh reads.
 case "$TARGET" in
-  *-windows-msvc)      FLAGS+=(-Clink-arg=/MAP:target/wordle_tui.map) ;;
-  *-unknown-linux-gnu) FLAGS+=(-Clink-arg=-Wl,-Map=target/wordle_tui-linux.map) ;;
+  *-windows-msvc)      FLAGS+=(-Clink-arg=/MAP:target/word_guess_tui.map) ;;
+  *-unknown-linux-gnu) FLAGS+=(-Clink-arg=-Wl,-Map=target/word_guess_tui-linux.map) ;;
 esac
 
 # Every flag above is unstable; -Zunstable-options gates them.
@@ -128,7 +128,7 @@ ARGS+=(${EXTRA[@]+"${EXTRA[@]}"})
 
 EXT=''; case "$TARGET" in *windows*) EXT='.exe' ;; esac
 DIR="${CARGO_TARGET_DIR:-target}"                     # tools/validate.sh redirects it under WSL
-OUT="$DIR/$TARGET/release/wordle_tui$EXT"
+OUT="$DIR/$TARGET/release/word_guess_tui$EXT"
 
 show(){ local a out=''; for a; do case "$a" in *[\ \"\[]*) out="$out '$a'" ;; *) out="$out $a" ;; esac; done; printf '%s\n' "${out# }"; }
 say "target: $TARGET | toolchain: $NIGHTLY"

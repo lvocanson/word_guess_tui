@@ -8,7 +8,7 @@
 #          its full backtrace machinery. Works on any platform — this project is NOT pinned to
 #          Windows.
 #
-#   ./wtui-ship.sh
+#   ./wgt-ship.sh
 #       -> ~40 KB. The shipping build, everything on. Two levers stack there:
 #
 #          * build-std recompiles std with the release profile (opt-level=z, LTO) AND without
@@ -24,7 +24,7 @@
 #            OPTIMIZATION.md "immediate-abort safety"), so that risk is theoretical. The paired
 #            `--cfg immediate_abort` gates the now-unreachable panic hook out of main.rs.
 #
-# Nightly prerequisite (pinned, see BUILD.md) — wtui-ship.sh installs it for you:
+# Nightly prerequisite (pinned, see BUILD.md) — wgt-ship.sh installs it for you:
 #   rustup toolchain install nightly-2026-08-25 --profile minimal --component rust-src
 #
 
@@ -37,7 +37,7 @@ build-std-features = []
 # MSVC-specific link optimizations. Keyed to the Windows triple, so they apply only when
 # targeting Windows and are simply inert on other hosts (keeping the build cross-platform).
 # /OPT:ICF folds identical functions at link time. /DEBUG:NONE drops the Debug Directory the
-# linker emits even under `strip = true` (a CodeView entry pointing at wordle_tui.pdb): ~100 B
+# linker emits even under `strip = true` (a CodeView entry pointing at word_guess_tui.pdb): ~100 B
 # of VirtualSize plus the leaked .pdb path.
 #
 # The three link args that the `#![no_main]` entry point needs (/ENTRY, /SUBSYSTEM,

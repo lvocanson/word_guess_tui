@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # wtui-ship.sh detects the triple from the runner it lands on, so `target` here only names
+        # wgt-ship.sh detects the triple from the runner it lands on, so `target` here only names
         # the path the binary comes out at (and labels the job); the toolchain pin and the flags
         # both live in the script.
         include:
@@ -54,15 +54,15 @@ jobs:
         with:
           key: ${{ matrix.target }}
       # No rustup step: the script installs the pinned nightly and its rust-src component itself.
-      # `bash wtui-ship.sh` rather than `./wtui-ship.sh` so this does not depend on the executable bit
+      # `bash wgt-ship.sh` rather than `./wgt-ship.sh` so this does not depend on the executable bit
       # surviving the checkout.
       - name: Build — ship
         shell: bash
-        run: bash wtui-ship.sh build
+        run: bash wgt-ship.sh build
       - name: Size report
         shell: bash
         run: |
-          BIN="target/${{ matrix.target }}/release/wordle_tui${{ matrix.suffix }}"
+          BIN="target/${{ matrix.target }}/release/word_guess_tui${{ matrix.suffix }}"
           cargo run --example stats -- "$BIN" | tee stats.txt
           {
             echo "### ${{ matrix.target }} — ship"

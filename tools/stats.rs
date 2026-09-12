@@ -35,14 +35,14 @@ fn file_len(path: &str) -> u64 {
 
 fn print_compression() {
     // The raw word-list sources the build compressed; the length suffix mirrors the file the
-    // build selected via WORDLE_WORD_LEN, read back from the generated WORD_LEN.
+    // build selected via WGT_WORD_LEN, read back from the generated WORD_LEN.
     let res = concat!(env!("CARGO_MANIFEST_DIR"), "/res");
     let answers = file_len(&format!("{res}/answer_words_{WORD_LEN}.txt"));
     let valid = file_len(&format!("{res}/valid_words_{WORD_LEN}.txt"));
     let source = answers + valid;
     let packed = BLOB.len() as u64;
 
-    println!("Wordle data");
+    println!("Word Guess data");
     println!(
         "  {} words = {} answers + {} valid extensions (all {WORD_LEN} letters)",
         commas(WORD_COUNT as u64),
@@ -90,7 +90,7 @@ fn print_binary_size() {
             return;
         }
     };
-    // Show the path (relative to the crate when possible): both profiles produce a `wordle_tui.exe`,
+    // Show the path (relative to the crate when possible): both profiles produce a `word_guess_tui.exe`,
     // so the bare file name would not say which one was measured.
     let shown = path
         .strip_prefix(env!("CARGO_MANIFEST_DIR"))
@@ -124,7 +124,7 @@ fn print_binary_size() {
 }
 
 /// The packed word corpus is embedded verbatim in the binary (see `src/words.rs`), so its share
-/// of the total is a direct read on how much of the game is Wordle data.
+/// of the total is a direct read on how much of the game is word data.
 fn print_blob_share(total: u64) {
     println!(
         "\n  word blob {} B = {:.1}% of the {} B total",
@@ -143,7 +143,7 @@ fn game_binary() -> Option<PathBuf> {
     }
     let target = std::env::var("CARGO_TARGET_DIR")
         .unwrap_or_else(|_| format!("{}/target", env!("CARGO_MANIFEST_DIR")));
-    let exe = format!("wordle_tui{}", std::env::consts::EXE_SUFFIX);
+    let exe = format!("word_guess_tui{}", std::env::consts::EXE_SUFFIX);
 
     #[cfg(windows)]
     let triple = "x86_64-pc-windows-msvc";
