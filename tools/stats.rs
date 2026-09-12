@@ -15,6 +15,7 @@
 //! Being a separate target, none of this links into the game binary. It only *measures* — build
 //! the game first, then run this (optionally passing an explicit path to the binary).
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 include!(concat!(env!("OUT_DIR"), "/constants.rs"));
@@ -28,17 +29,32 @@ fn main() {
 
 // --- Compression report -------------------------------------------------------------------------
 
-/// On-disk byte size of a source file (0 if it cannot be read).
-fn file_len(path: &str) -> u64 {
-    std::fs::metadata(path).map(|m| m.len()).unwrap_or(0)
+/// The `WORD_LEN`-letter words of a source list (empty if it cannot be read). Both lists hold
+/// every length the game can be built at; only the one length the build selected is compressed,
+/// so only that length may be measured against the blob.
+fn read_words(path: &str) -> BTreeSet<String> {
+    std::fs::read_to_string(path)
+        .unwrap_or_default()
+        .lines()
+        .filter(|word| word.len() == WORD_LEN)
+        .map(str::to_owned)
+        .collect()
+}
+
+/// What a set of words occupies as source text: its letters plus one line break each.
+fn text_len<'a>(words: impl Iterator<Item = &'a String>) -> u64 {
+    words.map(|word| word.len() as u64 + 1).sum()
 }
 
 fn print_compression() {
-    // The raw word-list sources the build compressed; the length suffix mirrors the file the
-    // build selected via WGT_WORD_LEN, read back from the generated WORD_LEN.
+    // The word-list sources the build compressed, measured as text at the selected WORD_LEN. The
+    // second row is what the valid list adds on top of the answers, so the rows add up to the
+    // corpus however much the two lists happen to share.
     let res = concat!(env!("CARGO_MANIFEST_DIR"), "/res");
-    let answers = file_len(&format!("{res}/answer_words_{WORD_LEN}.txt"));
-    let valid = file_len(&format!("{res}/valid_words_{WORD_LEN}.txt"));
+    let answer_words = read_words(&format!("{res}/answer_words.txt"));
+    let valid_words = read_words(&format!("{res}/valid_words.txt"));
+    let answers = text_len(answer_words.iter());
+    let valid = text_len(valid_words.difference(&answer_words));
     let source = answers + valid;
     let packed = BLOB.len() as u64;
 

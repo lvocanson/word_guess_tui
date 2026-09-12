@@ -1,7 +1,8 @@
 // Reading, validating and merging the two source word lists.
 //
-// A word list is one lowercase a-z word per non-empty line. Nothing here asserts a length;
-// the single length shared by the whole game is inferred from the data (see `word_length`).
+// A word list is one lowercase a-z word per line, every length in the same file; the caller
+// names the length it wants and the rest is skipped (see `read_words`). The single length the
+// whole game shares is still inferred from what was kept (see `word_length`).
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
@@ -74,11 +75,12 @@ impl std::ops::Deref for LowercaseAsciiWord {
     }
 }
 
-// Read a word list, validating every non-empty line as a lowercase ASCII word.
-pub fn read_words(path: &Path) -> Result<Vec<LowercaseAsciiWord>, WordsError> {
+// Read the `want_len`-letter words out of a word list, validating each one as lowercase ASCII.
+// Lines of any other length belong to the other lengths' vocabulary and are not this build's.
+pub fn read_words(path: &Path, want_len: usize) -> Result<Vec<LowercaseAsciiWord>, WordsError> {
     let text = fs::read_to_string(path).map_err(WordsError::Io)?;
     text.lines()
-        .filter(|line| !line.is_empty())
+        .filter(|line| line.len() == want_len)
         .map(|word| LowercaseAsciiWord::new(word.into()).map_err(WordsError::NotLowercaseAscii))
         .collect()
 }

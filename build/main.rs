@@ -36,9 +36,9 @@ fn main() {
     };
     assert!(max_guesses >= 1, "WGT_MAX_GUESSES must be at least 1");
 
-    // Word length selects which res/{answer,valid}_words_N.txt pair to compress: set
-    // WGT_WORD_LEN. Defaults to 5. The value only picks the source files here; the authoritative
-    // length is still inferred from the data below and cross-checked against this choice.
+    // Word length selects which words are compressed: set WGT_WORD_LEN. Defaults to 5. The two
+    // source lists hold the whole vocabulary, every length together (see tools/fetch_words.sh);
+    // only the words of this length reach the corpus, and the game is played at that one length.
     let selected_len: usize = match env::var("WGT_WORD_LEN") {
         Ok(s) => s
             .trim()
@@ -52,28 +52,28 @@ fn main() {
     // panic hook out of main.rs; declare it here so the unexpected-cfg lint stays quiet.
     println!("cargo::rustc-check-cfg=cfg(immediate_abort)");
 
-    let answers_name = format!("answer_words_{selected_len}.txt");
-    let valid_name = format!("valid_words_{selected_len}.txt");
-
-    println!("cargo:rerun-if-changed=res/{answers_name}");
-    println!("cargo:rerun-if-changed=res/{valid_name}");
+    println!("cargo:rerun-if-changed=res/answer_words.txt");
+    println!("cargo:rerun-if-changed=res/valid_words.txt");
     println!("cargo:rerun-if-changed=src/codec.rs");
     println!("cargo:rerun-if-changed=build");
     println!("cargo:rerun-if-env-changed=WGT_MAX_GUESSES");
     println!("cargo:rerun-if-env-changed=WGT_WORD_LEN");
 
-    let answers_txt = res.join(&answers_name);
-    let valid_txt = res.join(&valid_name);
-    let mut answers = read_words(&answers_txt).unwrap_or_else(|e| panic!("answer words: {e}"));
-    let mut valid = read_words(&valid_txt).unwrap_or_else(|e| panic!("valid words: {e}"));
+    let answers_txt = res.join("answer_words.txt");
+    let valid_txt = res.join("valid_words.txt");
+    let mut answers =
+        read_words(&answers_txt, selected_len).unwrap_or_else(|e| panic!("answer words: {e}"));
+    let mut valid =
+        read_words(&valid_txt, selected_len).unwrap_or_else(|e| panic!("valid words: {e}"));
+    assert!(
+        !answers.is_empty() && !valid.is_empty(),
+        "res/answer_words.txt + res/valid_words.txt hold no {selected_len}-letter word",
+    );
 
+    // Both lists were filtered to `selected_len`, so this agrees with it by construction; what it
+    // still enforces is the base-26/u64 length cap the encoder's ordering depends on.
     let word_len = word_length(answers.iter().chain(&valid).map(|w| w.len()))
         .unwrap_or_else(|e| panic!("{e}"));
-    assert_eq!(
-        word_len, selected_len,
-        "WGT_WORD_LEN={selected_len} but res/{answers_name} + res/{valid_name} hold \
-         {word_len}-letter words",
-    );
 
     answers.sort_unstable();
     answers.dedup();
