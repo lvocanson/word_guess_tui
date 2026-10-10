@@ -2,7 +2,7 @@
 name = "word_guess_tui"
 version = "2.0.0"
 edition = "2021"
-description = "Word Guess in the terminal, in a 28 KB binary, no runtime files"
+description = "Word Guess in the terminal, in a 26 KB binary, no runtime files"
 repository = "https://github.com/lvocanson/word_guess_tui"
 license = "MIT"
 build = "build/main.rs"

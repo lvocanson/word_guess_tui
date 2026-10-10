@@ -206,13 +206,13 @@ enum CellColor {
 
 const COLOR_RESET: &[u8] = b"\x1b[0m";
 const COLOR_WHITE_TEXT: &[u8] = b"\x1b[38;5;15m";
-const COLOR_RED_TEXT: &[u8] = b"\x1b[38;5;1m";
-const COLOR_EMPTY: &[u8] = b"\x1b[48;2;18;18;19m";
-const COLOR_DRAFT: &[u8] = b"\x1b[48;2;18;18;19m";
-const COLOR_KEYBOARD: &[u8] = b"\x1b[48;2;129;131;132m";
-const COLOR_CORRECT: &[u8] = b"\x1b[48;2;83;141;78m";
-const COLOR_MISPLACED: &[u8] = b"\x1b[48;2;181;159;59m";
-const COLOR_ABSENT: &[u8] = b"\x1b[48;2;58;58;60m";
+const COLOR_MESSAGE_TEXT: &[u8] = b"\x1b[38;2;200;117;24m";
+const COLOR_EMPTY: &[u8] = b"\x1b[48;2;22;24;30;38;5;15m";
+const COLOR_DRAFT: &[u8] = b"\x1b[48;2;22;24;30;38;5;15m";
+const COLOR_KEYBOARD: &[u8] = b"\x1b[48;2;70;74;85;38;5;15m";
+const COLOR_CORRECT: &[u8] = b"\x1b[48;2;254;230;212;38;5;16m";
+const COLOR_MISPLACED: &[u8] = b"\x1b[48;2;170;95;4;38;5;15m";
+const COLOR_ABSENT: &[u8] = b"\x1b[48;2;42;44;51;38;5;15m";
 
 fn cell_color(c: CellColor) -> &'static [u8] {
     match c {
@@ -271,11 +271,11 @@ fn draw_footer(
         grid.text(x + off, row, &s[..visible], fg);
     };
     if h >= FOOTER_H {
-        put(grid, y, msg, COLOR_RED_TEXT);
+        put(grid, y, msg, COLOR_MESSAGE_TEXT);
         put(grid, y + 1, controls.as_bytes(), COLOR_WHITE_TEXT);
     } else if h >= 1 {
         if message.is_some() {
-            put(grid, y, msg, COLOR_RED_TEXT);
+            put(grid, y, msg, COLOR_MESSAGE_TEXT);
         } else {
             put(grid, y, controls.as_bytes(), COLOR_WHITE_TEXT);
         }

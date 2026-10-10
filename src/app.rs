@@ -110,13 +110,13 @@ impl App {
                 self.controls = END_CONTROLS;
                 let n = self.game.nb_guesses();
                 let adjective: &[u8] = match n {
-                    1 => b"Genius!",
-                    2 => b"Magnificent!",
-                    3 => b"Impressive!",
-                    4 => b"Splendid!",
-                    5 => b"Great!",
-                    MAX_GUESSES => b"Phew!",
-                    _ => b"Good!",
+                    1 => b"Psychic!",
+                    2 => b"Uncanny!",
+                    3 => b"Sharp!",
+                    4 => b"Solid.",
+                    5 => b"Not bad.",
+                    MAX_GUESSES => b"Close call!",
+                    _ => b"Got it.",
                 };
                 push_bytes(&mut self.msg, &mut self.msg_len, b"Found in ");
                 push_decimal(&mut self.msg, &mut self.msg_len, n);
