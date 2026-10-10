@@ -4,6 +4,8 @@
 
 Word Guess in the terminal: full-screen board, on-screen keyboard, mouse or keyboard input, and a 14,853-word dictionary — in a **28 KB** binary built on one dependency (`crossterm`) with no runtime files.
 
+**[Play it in the browser](https://lvocanson.github.io/word_guess_tui/)** — the same game compiled to WebAssembly, in a single self-contained page.
+
 <p align="center">
   <img src="docs/demo.gif" width="400"
        alt="A game in progress: letters land on the board and turn green, yellow or grey, and the on-screen keyboard tracks the best score seen for each letter.">

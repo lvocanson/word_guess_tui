@@ -102,11 +102,14 @@ fn main() {
 
 /// Freshest existing default map, mirroring how stats.rs picks the freshest binary.
 fn default_map() -> Option<String> {
-    ["target/word_guess_tui.map", "target/word_guess_tui-linux.map"]
-        .into_iter()
-        .filter(|p| Path::new(p).exists())
-        .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
-        .map(str::to_string)
+    [
+        "target/word_guess_tui.map",
+        "target/word_guess_tui-linux.map",
+    ]
+    .into_iter()
+    .filter(|p| Path::new(p).exists())
+    .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
+    .map(str::to_string)
 }
 
 /// Aggregate every section's bytes by crate and print the totals — the `cargo bloat --crates`

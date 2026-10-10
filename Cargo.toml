@@ -15,7 +15,7 @@ strip = true
 panic = "abort"
 overflow-checks = false
 
-[dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 crossterm = "0.29.0"
 
 # Off-tree stats reporter (not built by `cargo build`; run with `cargo run --example stats`).

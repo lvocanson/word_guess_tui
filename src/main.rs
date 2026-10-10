@@ -4,12 +4,14 @@
 // needs any of that — there is no recursion, no thread, and no argument parsing, and the terminal
 // is flushed and restored by `restore_terminal`. See OPTIMIZATION.md.
 #![cfg_attr(not(test), no_main)]
+#[cfg(not(target_arch = "wasm32"))]
 use std::io::{self, Write};
 
-use crossterm::event::{
-    self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers,
-};
+#[cfg(not(target_arch = "wasm32"))]
+use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event};
+#[cfg(not(target_arch = "wasm32"))]
 use crossterm::execute;
+#[cfg(not(target_arch = "wasm32"))]
 use crossterm::terminal;
 #[cfg(unix)]
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
@@ -17,12 +19,18 @@ use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 mod app;
 mod codec;
 mod game;
+mod keys;
+#[cfg(not(target_arch = "wasm32"))]
 mod out;
 mod ui;
+#[cfg(target_arch = "wasm32")]
+mod web;
 mod words;
 
 use app::App;
 use game::Phase;
+use keys::{KeyCode, KeyEvent, KeyModifiers};
+#[cfg(not(target_arch = "wasm32"))]
 use out::Out;
 
 // Enable ANSI escape processing on the console, and report whether the escapes we emit will be
@@ -49,6 +57,7 @@ fn enable_vt() -> bool {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn init_terminal() -> io::Result<Out> {
     // Probed first so there is nothing to undo when it fails.
     #[cfg(windows)]
@@ -79,6 +88,7 @@ fn init_terminal() -> io::Result<Out> {
     Ok(out)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn restore_terminal(out: &mut Out) {
     #[cfg(unix)]
     let _ = disable_raw_mode();
@@ -90,6 +100,7 @@ fn restore_terminal(out: &mut Out) {
     let _ = out.flush();
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn run(out: &mut Out) -> io::Result<()> {
     let mut app = App::new();
     let mut size = terminal::size()?;
@@ -194,6 +205,7 @@ extern "system" {
     fn ExitProcess(code: u32) -> !;
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn game() {
     // Minimal hook: restore the terminal, then exit. We `exit(101)` rather than return
     // (which would let panic = "abort" call abort()): on Windows abort() hands off

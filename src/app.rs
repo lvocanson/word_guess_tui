@@ -4,8 +4,14 @@
 
 use crate::game::{Game, Phase, SubmitError, MAX_GUESSES};
 
+#[cfg(not(target_arch = "wasm32"))]
 const PLAYING_CONTROLS: &str = "<Enter> Submit  <Esc> Quit";
+#[cfg(not(target_arch = "wasm32"))]
 const END_CONTROLS: &str = "<Enter> Restart <Esc> Quit";
+#[cfg(target_arch = "wasm32")]
+const PLAYING_CONTROLS: &str = "<Enter> Submit";
+#[cfg(target_arch = "wasm32")]
+const END_CONTROLS: &str = "<Enter> Restart";
 
 // Fixed capacity for the footer message: enough for "Found in N guesses. <adjective>" with a
 // multi-digit guess count and for "The word was <WORD>." at any supported WORD_LEN. Writers clamp,

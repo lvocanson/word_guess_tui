@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Word Guess</title>
+<style>
+html, body { margin: 0; height: 100%; background: #0c0c0c; color: #cccccc; overflow: hidden; }
+body { display: flex; align-items: center; justify-content: center; }
+#screen, #probe {
+  font-family: "Cascadia Mono", Consolas, "DejaVu Sans Mono", Menlo, monospace;
+  white-space: pre;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+#screen div { height: var(--h); line-height: var(--h); }
+#screen span { display: inline-block; height: 100%; vertical-align: top; }
+#probe { position: absolute; visibility: hidden; }
+</style>
+</head>
+<body>
+<div id="screen"></div>
+<span id="probe"></span>
+<script id="wasm" type="application/octet-stream">
+__WASM_BASE64__
+</script>
+<script>
+(async () => {
+  const screen = document.getElementById("screen");
+  const probe = document.getElementById("probe");
+  const bytes = Uint8Array.from(atob(document.getElementById("wasm").textContent.trim()), c => c.charCodeAt(0));
+  const seed = () => {
+    const r = new Uint32Array(2);
+    crypto.getRandomValues(r);
+    return r[0] * 2 ** 21 + (r[1] >>> 11);
+  };
+  const { instance } = await WebAssembly.instantiate(bytes, { env: { wgt_seed: seed } });
+  const wasm = instance.exports;
+
+  const BASE16 = ["#0c0c0c", "#c50f1f", "#13a10e", "#c19c00", "#0037da", "#881798", "#3a96dd", "#cccccc",
+                  "#767676", "#e74856", "#16c60c", "#f9f1a5", "#3b78ff", "#b4009e", "#61d6d6", "#f2f2f2"];
+  const color256 = n => {
+    if (n < 16) return BASE16[n];
+    if (n >= 232) { const v = 8 + (n - 232) * 10; return `rgb(${v},${v},${v})`; }
+    n -= 16;
+    const c = v => (v ? 55 + v * 40 : 0);
+    return `rgb(${c(Math.floor(n / 36))},${c(Math.floor(n / 6) % 6)},${c(n % 6)})`;
+  };
+
+  const sgr = (params, style) => {
+    for (let i = 0; i < params.length; i++) {
+      const p = params[i];
+      if (p === 0) { style.fg = null; style.bg = null; }
+      else if (p === 38 || p === 48) {
+        let value = null;
+        if (params[i + 1] === 5) { value = color256(params[i + 2]); i += 2; }
+        else if (params[i + 1] === 2) { value = `rgb(${params[i + 2]},${params[i + 3]},${params[i + 4]})`; i += 4; }
+        if (p === 38) style.fg = value; else style.bg = value;
+      }
+      else if (p === 39) style.fg = null;
+      else if (p === 49) style.bg = null;
+    }
+  };
+
+  const paint = () => {
+    const frame = new Uint8Array(wasm.memory.buffer, wasm.wgt_frame_ptr(), wasm.wgt_frame_len());
+    const out = document.createDocumentFragment();
+    let row = out.appendChild(document.createElement("div"));
+    const style = { fg: null, bg: null };
+    let text = "";
+    const flush = () => {
+      if (!text) return;
+      const span = document.createElement("span");
+      if (style.fg) span.style.color = style.fg;
+      if (style.bg) span.style.background = style.bg;
+      span.textContent = text;
+      row.appendChild(span);
+      text = "";
+    };
+    for (let i = 0; i < frame.length; i++) {
+      const b = frame[i];
+      if (b !== 0x1b) { text += String.fromCharCode(b); continue; }
+      if (frame[i + 1] !== 0x5b) continue;
+      let j = i + 2;
+      while (j < frame.length && (frame[j] < 0x40 || frame[j] > 0x7e)) j++;
+      const params = String.fromCharCode(...frame.subarray(i + 2, j)).split(";").map(Number);
+      flush();
+      if (frame[j] === 0x6d) sgr(params, style);
+      else if (frame[j] === 0x45) row = out.appendChild(document.createElement("div"));
+      i = j;
+    }
+    flush();
+    screen.replaceChildren(out);
+  };
+
+  const ROWS = wasm.wgt_layout_rows();
+  const COLS = wasm.wgt_layout_cols();
+  const LINE = 1.25;
+  const advance = size => {
+    probe.style.fontSize = `${size}px`;
+    probe.textContent = "M".repeat(100);
+    const w = probe.getBoundingClientRect().width / 100;
+    probe.textContent = "";
+    return w;
+  };
+  let cell = { w: 1, h: 1 };
+  const resize = () => {
+    const size = Math.min(innerHeight / ROWS / LINE, (innerWidth / COLS / advance(100)) * 100);
+    const h = Math.floor(size * LINE);
+    cell = { w: advance(size), h };
+    screen.style.fontSize = `${size}px`;
+    screen.style.setProperty("--h", `${h}px`);
+    wasm.wgt_resize(Math.max(COLS, Math.floor(innerWidth / cell.w)), ROWS);
+    paint();
+  };
+  addEventListener("resize", resize);
+  resize();
+
+  const KEYS = { Backspace: 8, Enter: 13, Escape: 27 };
+  addEventListener("keydown", e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const code = KEYS[e.key] ?? (/^[a-z]$/i.test(e.key) ? e.key.charCodeAt(0) : 0);
+    if (!code) return;
+    e.preventDefault();
+    wasm.wgt_key(code);
+    paint();
+  });
+
+  screen.addEventListener("pointerdown", e => {
+    if (e.button !== 0) return;
+    const r = screen.getBoundingClientRect();
+    wasm.wgt_click(Math.floor((e.clientX - r.left) / cell.w), Math.floor((e.clientY - r.top) / cell.h));
+    paint();
+  });
+})();
+</script>
+</body>
+</html>

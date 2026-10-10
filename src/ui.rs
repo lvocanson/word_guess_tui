@@ -1,8 +1,8 @@
 use std::io::Write;
 
 use crate::game::{Game, LetterState, Score, MAX_GUESSES};
+use crate::keys::{KeyCode, KeyEvent, KeyModifiers};
 use crate::words::WORD_LEN;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 const CELL_W: usize = 7;
 const CELL_H: usize = 3;
@@ -39,6 +39,23 @@ const _: () = assert!(MIN_H_KB_GAPS == REQ_VERT);
 
 const BTN_W: usize = 5; // full ENTER / BACK buttons flanking the bottom row
 const BTN_W_MIN: usize = 3; // degraded (E) / (B) buttons
+
+#[cfg(target_arch = "wasm32")]
+pub const REQ_VERT_SPACED: usize = REQ_VERT + SECTION_COUNT - 1;
+
+#[cfg(target_arch = "wasm32")]
+pub const REQ_HORIZ: usize = {
+    let board = WORD_LEN * CELL_W + (WORD_LEN - 1);
+    let keys = KB_COLS * KEY_W + (KB_COLS - 1);
+    let bottom = KEYBOARD_ROWS[KEYBOARD_ROWS.len() - 1].len();
+    let buttons = 2 * BTN_W + 2 + bottom * KEY_W + (bottom - 1);
+    let kb = if keys > buttons { keys } else { buttons };
+    if board > kb {
+        board
+    } else {
+        kb
+    }
+};
 
 const MINI_W: usize = WORD_LEN; // narrowest terminal that can show a board
 const MINI_H: usize = MAX_GUESSES; // shortest terminal that can show a board

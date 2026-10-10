@@ -3,6 +3,7 @@
 // — it only answers "is this a word?" (`is_valid`) and "give me an answer to guess" (`pick_target`).
 
 use std::cmp::Ordering;
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::codec::{self, decode_color, RangeDecoder};
@@ -156,11 +157,21 @@ pub fn is_valid(word: &[u8]) -> bool {
     false
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn random_seed() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_nanos() as u64)
         .unwrap_or(12345)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn random_seed() -> u64 {
+    #[link(wasm_import_module = "env")]
+    extern "C" {
+        fn wgt_seed() -> f64;
+    }
+    (unsafe { wgt_seed() } as u64) | 1
 }
 
 // Pick a random answer: the answers are exactly the colour-A words, known to number
