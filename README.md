@@ -7,7 +7,7 @@ Word Guess in the terminal: full-screen board, on-screen keyboard, mouse or keyb
 **[Play it in the browser](https://lvocanson.github.io/word_guess_tui/)** — the same game compiled to WebAssembly, in a single self-contained page.
 
 <p align="center">
-  <img src="docs/demo.gif" width="400"
+  <img src="docs/demo.gif" width="409"
        alt="A game in progress: letters land on the board and turn white, orange or dark grey, and the on-screen keyboard tracks the best score seen for each letter.">
 </p>
 
@@ -36,7 +36,7 @@ The layout adapts to the terminal: as height becomes available, features switch 
 It still plays in a terminal only 5 columns by 6 rows.
 
 <p align="center">
-  <img src="docs/resize.gif" width="400"
+  <img src="docs/resize.gif" width="409"
        alt="The terminal shrinks one row at a time: the title, row gaps, keyboard and controls line switch off one by one, then switch back on as it grows again.">
 </p>
 
@@ -104,7 +104,7 @@ Size is the project's main constraint; the whole record lives in [OPTIMIZATION.m
 |---------|--------:|--------------:|
 | First working TUI (baseline) | 396,288 | — |
 | Stable, no prerequisites | 121,344 | 327,248 |
-| `ship`, pinned nightly | **26,112** | 65,208 |
+| `ship`, pinned nightly | **26,112** | 65,240 |
 
 Bytes on disk — the size a release asset shows. OPTIMIZATION.md compares un-padded section totals instead, which differ from these by the linker's section padding (and, on musl, by zero-initialized data).
 

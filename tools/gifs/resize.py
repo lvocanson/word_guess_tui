@@ -8,7 +8,7 @@ import common
 # TODO: the target comes from FAKE_TIME through the word lists; editing res/ changes it, and GUESSES must be re-picked.
 FAKE_TIME = '2026-10-10 12:00:04'
 GUESSES = ['crane', 'pious', 'final', 'vital', 'medal', 'tidal']
-COLS, ROWS = 44, 34
+COLS, ROWS = 45, 34
 STEP_MS, APEX_MS = 200, 900
 
 
